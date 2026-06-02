@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SkillBridge AI</title>
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Times New Roman', Georgia, serif;
+  min-height: 100vh;
+  background: linear-gradient(160deg, #0f172a 0%, #1a2f5a 30%, #1e3a4a 60%, #16253a 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 60px 20px 80px;
+}
+
+/* heading */
+.heading {
+  text-align: center;
+  margin-bottom: 52px;
+}
+
+.heading h1 {
+  font-family: 'Times New Roman', Georgia, serif;
+  font-size: clamp(36px, 6vw, 64px);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  color: #e0f2f1;
+  line-height: 1.05;
+  margin-bottom: 14px;
+}
+
+.heading h1 span { color: #00d4ff; }
+
+.heading p {
+  font-size: 16px;
+  color: #b0bec5;
+  font-weight: 300;
+  max-width: 440px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+/* card */
+.card {
+  width: 100%;
+  max-width: 620px;
+  background: rgba(30, 47, 66, 0.85);
+  backdrop-filter: blur(24px);
+  border-radius: 24px;
+  border: 1px solid rgba(0, 212, 255, 0.2);
+  box-shadow: 0 8px 40px rgba(0, 212, 255, 0.15), 0 2px 8px rgba(0, 212, 255, 0.08);
+  padding: 36px 36px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  border-color: rgba(0, 212, 255, 0.4);
+  box-shadow: 0 12px 50px rgba(0, 212, 255, 0.25), 0 4px 12px rgba(0, 212, 255, 0.15);
+  transform: translateY(-2px);
+}
+
+/* field */
+.field { display: flex; flex-direction: column; gap: 8px; }
+
+.label {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #00d4ff;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.label:hover {
+  color: #00ffff;
+}
+
+/* upload zone */
+.upload-zone {
+  border: 1.5px dashed rgba(0, 212, 255, 0.35);
+  border-radius: 14px;
+  background: rgba(0, 212, 255, 0.08);
+  padding: 32px 20px;
+  text-align: center;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.upload-zone:hover { 
+  border-color: #00d4ff; 
+  background: rgba(0, 212, 255, 0.15);
+  box-shadow: 0 4px 16px rgba(0, 212, 255, 0.2);
+  transform: scale(1.02);
+}
+.upload-zone.dragging { border-color: #00d4ff; background: rgba(0, 212, 255, 0.2); transform: scale(1.01); }
+
+.upload-zone.has-file {
+  border-color: #00d4ff;
+  border-style: solid;
+  background: rgba(0, 212, 255, 0.1);
+}
+
+.upload-zone input {
+  position: absolute; inset: 0;
+  opacity: 0; cursor: pointer;
+  width: 100%; height: 100%;
+}
+
+.upload-icon-wrap {
+  width: 44px; height: 44px;
+  border-radius: 12px;
+  background: rgba(0, 212, 255, 0.15);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 12px;
+  transition: background 0.2s;
+}
+
+.upload-zone.has-file .upload-icon-wrap { background: rgba(0, 212, 255, 0.25); }
+
+.upload-title {
+  font-size: 14px; font-weight: 500; color: #e0f2f1; margin-bottom: 4px;
+}
+
+.upload-zone.has-file .upload-title { color: #00d4ff; }
+.upload-hint { font-size: 12px; color: #90caf9; }
+
+/* textarea */
+textarea {
+  width: 100%; height: 140px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1.5px solid rgba(0, 212, 255, 0.2);
+  background: rgba(20, 40, 60, 0.6);
+  color: #e0f2f1;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px; font-weight: 300; line-height: 1.6;
+  outline: none; resize: none;
+  transition: all 0.2s;
+}
+
+textarea::placeholder { color: #607d8b; }
+textarea:focus { border-color: #00d4ff; background: rgba(20, 40, 60, 0.9); }
+
+/* error */
+.error {
+  display: none; align-items: center; gap: 8px;
+  padding: 11px 14px;
+  background: rgba(244, 67, 54, 0.15); border: 1px solid rgba(244, 67, 54, 0.4);
+  border-radius: 10px; font-size: 13px; color: #ff6b6b;
+}
+.error.show { display: flex; }
+
+/* button */
+button.analyze {
+  width: 100%; padding: 15px;
+  border: none; border-radius: 12px;
+  background: #00d4ff;
+  color: #0a1929; font-family: 'DM Sans', sans-serif;
+  font-size: 15px; font-weight: 500;
+  cursor: pointer; letter-spacing: 0.01em;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  transition: all 0.2s;
+  box-shadow: 0 4px 16px rgba(0, 212, 255, 0.3);
+}
+
+button.analyze:hover:not(:disabled) {
+  background: #00ffff;
+  transform: translateY(-3px);
+  box-shadow: 0 8px 32px rgba(0, 212, 255, 0.5);
+  letter-spacing: 0.03em;
+}
+
+button.analyze:disabled { opacity: 0.55; cursor: not-allowed; transform: none; box-shadow: none; }
+
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinner {
+  width: 16px; height: 16px;
+  border: 2px solid rgba(10, 25, 41, 0.3);
+  border-top-color: #0a1929;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+/* result card */
+.result-card {
+  display: none;
+  flex-direction: column; gap: 20px;
+  padding-top: 4px;
+}
+.result-card.show { display: flex; }
+
+/* score row */
+.score-row {
+  display: flex; align-items: center; gap: 20px;
+  padding: 22px 20px;
+  background: rgba(30, 47, 66, 0.6);
+  border-radius: 16px;
+  border: 1px solid rgba(0, 212, 255, 0.2);
+}
+
+.score-ring { position: relative; width: 80px; height: 80px; flex-shrink: 0; }
+.score-ring svg { transform: rotate(-90deg); }
+.ring-bg { fill: none; stroke: rgba(0, 212, 255, 0.2); stroke-width: 6; }
+.ring-fill {
+  fill: none; stroke: #00d4ff; stroke-width: 6; stroke-linecap: round;
+  stroke-dasharray: 201; stroke-dashoffset: 201;
+  transition: stroke-dashoffset 1.2s cubic-bezier(0.4,0,0.2,1);
+}
+.ring-text {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; color: #00d4ff;
+}
+.ring-pct { font-size: 10px; font-weight: 400; font-family: 'DM Sans', sans-serif; color: #90caf9; margin-top: -2px; }
+
+.score-info { flex: 1; }
+.score-headline { font-family: 'Syne', sans-serif; font-size: 17px; font-weight: 700; color: #e0f2f1; margin-bottom: 4px; }
+.score-sub { font-size: 13px; color: #90caf9; font-weight: 300; line-height: 1.5; margin-bottom: 10px; }
+.bar-track { height: 4px; background: rgba(71, 155, 172, 0.2); border-radius: 2px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 2px; width: 0; background: #00d4ff; transition: width 1.2s cubic-bezier(0.4,0,0.2,1); }
+
+/* skill boxes */
+.skills-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+.skill-box {
+  background: rgba(30, 47, 66, 0.5); border-radius: 14px;
+  border: 1px solid rgba(0, 212, 255, 0.15);
+  padding: 16px;
+}
+
+.skill-box-head {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 12px;
+}
+
+.skill-box-icon {
+  width: 26px; height: 26px; border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700;
+}
+
+.skill-box-icon.g { background: rgba(0, 212, 255, 0.2); color: #00d4ff; }
+.skill-box-icon.r { background: rgba(244, 67, 54, 0.2); color: #ff6b6b; }
+.skill-box-label { font-size: 12px; font-weight: 500; color: #e0f2f1; }
+.skill-box-count { margin-left: auto; font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; }
+.skill-box-count.g { color: #00d4ff; }
+.skill-box-count.r { color: #ff6b6b; }
+
+.tags { display: flex; flex-wrap: wrap; gap: 5px; }
+
+@keyframes tag-pop { from { opacity:0; transform:scale(0.85); } to { opacity:1; transform:scale(1); } }
+
+.tag {
+  padding: 3px 9px; border-radius: 6px;
+  font-size: 11px; font-weight: 500;
+  opacity: 0; animation: tag-pop 0.25s forwards;
+}
+
+.tag.m { background: rgba(0, 212, 255, 0.15); border: 1px solid rgba(0, 212, 255, 0.3); color: #00d4ff; }
+.tag.x { background: rgba(244, 67, 54, 0.15); border: 1px solid rgba(244, 67, 54, 0.3); color: #ff6b6b; }
+.tag.empty { font-size: 11px; color: #607d8b; opacity: 1; animation: none; }
+
+/* tip */
+.tip {
+  background: rgba(30, 47, 66, 0.5); border-radius: 14px;
+  border: 1px solid rgba(0, 212, 255, 0.15);
+  padding: 16px 18px;
+  display: flex; gap: 12px; align-items: flex-start;
+  font-size: 13px; color: #e0f2f1; line-height: 1.6; font-weight: 300;
+}
+
+.tip-icon {
+  width: 30px; height: 30px; border-radius: 8px;
+  background: rgba(0, 212, 255, 0.15); display: flex; align-items: center;
+  justify-content: center; font-size: 14px; flex-shrink: 0;
+}
+
+/* reset */
+.reset-btn {
+  background: none; border: none; cursor: pointer;
+  font-family: 'DM Sans', sans-serif; font-size: 13px;
+  color: #90caf9; display: flex; align-items: center; gap: 5px;
+  padding: 0; transition: color 0.2s; align-self: flex-start;
+}
+.reset-btn:hover { color: #00d4ff; }
+
+/* loading */
+.loading {
+  display: none; flex-direction: column;
+  align-items: center; gap: 16px;
+  padding: 32px 0; text-align: center;
+}
+.loading.show { display: flex; }
+.load-ring {
+  width: 48px; height: 48px; border-radius: 50%;
+  border: 2.5px solid rgba(0, 212, 255, 0.15);
+  border-top-color: #00d4ff;
+  animation: spin 0.9s linear infinite;
+}
+.load-step { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; color: #e0f2f1; }
+.load-sub { font-size: 13px; color: #90caf9; font-weight: 300; }
+
+/* Amazing Components */
+
+/* Animated Badge */
+.badge {
+  display: inline-block;
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #00d4ff, #00ffff);
+  color: #0a1929;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  box-shadow: 0 4px 15px rgba(0, 212, 255, 0.4);
+  animation: badge-glow 2s ease-in-out infinite;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.badge:hover {
+  transform: scale(1.08);
+  box-shadow: 0 6px 25px rgba(0, 212, 255, 0.6);
+}
+
+@keyframes badge-glow {
+  0%, 100% { box-shadow: 0 4px 15px rgba(0, 212, 255, 0.4); }
+  50% { box-shadow: 0 6px 25px rgba(0, 212, 255, 0.8); }
+}
+
+/* Stats Container */
+.stats-container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.stat-box {
+  background: linear-gradient(135deg, rgba(0, 212, 255, 0.1), rgba(0, 212, 255, 0.05));
+  border: 1px solid rgba(0, 212, 255, 0.2);
+  border-radius: 12px;
+  padding: 14px;
+  text-align: center;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.stat-box:hover {
+  background: linear-gradient(135deg, rgba(0, 212, 255, 0.2), rgba(0, 212, 255, 0.1));
+  border-color: rgba(0, 212, 255, 0.4);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 212, 255, 0.15);
+}
+
+.stat-number {
+  font-size: 18px;
+  font-weight: 700;
+  color: #00d4ff;
+  margin-bottom: 4px;
+}
+
+.stat-label {
+  font-size: 11px;
+  color: #90caf9;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+/* Glowing Line */
+.glowing-line {
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #00d4ff, transparent);
+  border-radius: 1px;
+  animation: glow-flow 3s ease-in-out infinite;
+  margin: 16px 0;
+}
+
+@keyframes glow-flow {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+
+/* Pulse Button */
+.pulse-btn {
+  position: relative;
+  overflow: hidden;
+}
+
+.pulse-btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  animation: pulse-expand 0.6s ease-out;
+}
+
+@keyframes pulse-expand {
+  to {
+    transform: translate(-50%, -50%) scale(2);
+    opacity: 0;
+  }
+}
+
+/* Feature Chips */
+.chip {
+  display: inline-block;
+  background: rgba(0, 212, 255, 0.15);
+  border: 1px solid rgba(0, 212, 255, 0.3);
+  color: #00d4ff;
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 500;
+  margin: 4px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.chip:hover {
+  background: rgba(0, 212, 255, 0.3);
+  border-color: rgba(0, 212, 255, 0.6);
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0, 212, 255, 0.2);
+}
+
+/* Shimmer Effect */
+@keyframes shimmer {
+  0% { background-position: -1000px 0; }
+  100% { background-position: 1000px 0; }
+}
+
+.shimmer-text {
+  background: linear-gradient(90deg, #00d4ff, #00ffff, #00d4ff);
+  background-size: 500px 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 3s infinite;
+}
+
+</style>
+</head>
+<body>
+
+<!-- HEADING -->
+<div class="heading">
+  <h1>Skill <span class="shimmer-text">Bridge</span></h1>
+  <p>Upload your resume, paste a job description — get an instant skill match score powered by NLP.</p>
+</div>
+
+<!-- CARD -->
+<div class="card">
+
+  <!-- RESUME UPLOAD -->
+  <div class="field">
+    <div class="label">Resume</div>
+    <div class="upload-zone" id="drop-zone">
+      <input type="file" id="resume-input" accept=".pdf" onchange="handleFile(this)">
+      <div class="upload-icon-wrap" id="upload-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00d4ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="12" y1="18" x2="12" y2="12"/>
+          <line x1="9" y1="15" x2="15" y2="15"/>
+        </svg>
+      </div>
+      <div class="upload-title" id="upload-title">Drop your resume here</div>
+      <div class="upload-hint" id="upload-hint">or click to browse &middot; PDF only</div>
+    </div>
+  </div>
+
+  <!-- JOB DESCRIPTION -->
+  <div class="field">
+    <div class="label">Job Description</div>
+    <textarea id="jd" placeholder="Paste the full job description here — requirements, responsibilities, qualifications…"></textarea>
+  </div>
+
+  <!-- ERROR -->
+  <div class="error" id="error">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    <span id="error-text"></span>
+  </div>
+
+  <!-- Amazing Stats Preview -->
+  <div style="display: none;" id="stats-preview">
+    <div class="glowing-line"></div>
+    <div class="stats-container">
+      <div class="stat-box">
+        <div class="stat-number">88%</div>
+        <div class="stat-label">Match Rate</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-number">24</div>
+        <div class="stat-label">Skills Found</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-number">12</div>
+        <div class="stat-label">Missing Skills</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BUTTON -->
+  <button class="analyze pulse-btn" id="analyze-btn" onclick="analyze()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    Analyze Resume
+  </button>
+
+  <!-- LOADING -->
+  <div class="loading" id="loading">
+    <div class="load-ring"></div>
+    <div>
+      <div class="load-step" id="load-step">Parsing resume…</div>
+      <div class="load-sub">Hang tight, just a moment</div>
+    </div>
+  </div>
+
+  <!-- RESULTS -->
+  <div class="result-card" id="result-card">
+
+    <!-- Score -->
+    <div class="score-row">
+      <div class="score-ring">
+        <svg width="80" height="80" viewBox="0 0 80 80">
+          <circle class="ring-bg" cx="40" cy="40" r="32"/>
+          <circle class="ring-fill" id="ring-fill" cx="40" cy="40" r="32"/>
+        </svg>
+        <div class="ring-text">
+          <span id="ring-num">—</span>
+          <span class="ring-pct">match</span>
+        </div>
+      </div>
+      <div class="score-info">
+        <div class="score-headline" id="score-headline">—</div>
+        <div class="score-sub" id="score-sub">—</div>
+        <div class="bar-track"><div class="bar-fill" id="bar-fill"></div></div>
+      </div>
+    </div>
+
+    <!-- Skills -->
+    <div class="skills-row">
+      <div class="skill-box">
+        <div class="skill-box-head">
+          <div class="skill-box-icon g">✓</div>
+          <div class="skill-box-label">Matched Skills</div>
+          <div class="skill-box-count g" id="match-count">0</div>
+        </div>
+        <div class="tags" id="matched-tags"></div>
+      </div>
+      <div class="skill-box">
+        <div class="skill-box-head">
+          <div class="skill-box-icon r">✕</div>
+          <div class="skill-box-label">Missing Skills</div>
+          <div class="skill-box-count r" id="missing-count">0</div>
+        </div>
+        <div class="tags" id="missing-tags"></div>
+      </div>
+    </div>
+
+    <!-- Tip -->
+    <div class="tip">
+      <div class="tip-icon">💡</div>
+      <div id="tip-text">—</div>
+    </div>
+
+    <!-- Reset -->
+    <button class="reset-btn" onclick="reset()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.95"/></svg>
+      Analyze another resume
+    </button>
+
+  </div>
+</div>
+
+<script>
+// drag-drop
+const dz = document.getElementById('drop-zone');
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('dragging'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('dragging'));
+dz.addEventListener('drop', e => {
+  e.preventDefault(); dz.classList.remove('dragging');
+  const fi = document.getElementById('resume-input');
+  if (e.dataTransfer.files.length) {
+    const dt = new DataTransfer(); dt.items.add(e.dataTransfer.files[0]);
+    fi.files = dt.files; handleFile(fi);
+  }
+});
+
+function handleFile(input) {
+  const f = input.files[0]; if (!f) return;
+  dz.classList.add('has-file');
+  document.getElementById('upload-title').textContent = f.name;
+  document.getElementById('upload-hint').textContent = (f.size/1024).toFixed(0) + ' KB · PDF';
+  document.getElementById('upload-icon').innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
+}
+
+function err(msg) {
+  const el = document.getElementById('error');
+  document.getElementById('error-text').textContent = msg;
+  el.classList.add('show');
+}
+function clearErr() { document.getElementById('error').classList.remove('show'); }
+
+const steps = ['Extracting resume text…','Identifying your skills…','Parsing job requirements…','Computing match score…','Generating insights…'];
+let stepTimer;
+function startLoading() {
+  let i = 0;
+  document.getElementById('load-step').textContent = steps[0];
+  stepTimer = setInterval(() => { i=(i+1)%steps.length; document.getElementById('load-step').textContent = steps[i]; }, 900);
+  document.getElementById('loading').classList.add('show');
+}
+function stopLoading() { clearInterval(stepTimer); document.getElementById('loading').classList.remove('show'); }
+
+function renderScore(pct) {
+  const r = 32, c = 2*Math.PI*r, offset = c - (pct/100)*c;
+  const color = pct>=75?'#16a34a':pct>=50?'#d97706':'#dc2626';
+  const arc = document.getElementById('ring-fill');
+  arc.style.strokeDasharray = c;
+  arc.style.stroke = color;
+  setTimeout(() => arc.style.strokeDashoffset = offset, 60);
+
+  document.getElementById('ring-num').textContent = pct + '%';
+  document.getElementById('ring-num').style.color = color;
+  document.getElementById('bar-fill').style.background = color;
+  setTimeout(() => document.getElementById('bar-fill').style.width = pct + '%', 60);
+
+  const [hl, sub, tip] = pct>=80
+    ? ['Excellent match','Your profile strongly aligns. Apply with confidence.','Tailor your summary with keywords from the JD for even stronger ATS performance.']
+    : pct>=60
+    ? ['Good match','Solid alignment with a few gaps to address.','A short course or side project covering the missing skills will make your application very competitive.']
+    : pct>=40
+    ? ['Partial match','Key skills are missing from your profile.','Build 1–2 projects showcasing the missing skills, then reapply. You are closer than you think.']
+    : ['Low match','This role requires skills not yet in your resume.','Use the missing skills list as your learning roadmap. Upskilling in 2–3 areas could make you competitive within months.'];
+
+  document.getElementById('score-headline').textContent = hl;
+  document.getElementById('score-sub').textContent = sub;
+  document.getElementById('tip-text').textContent = tip;
+}
+
+function renderTags(id, list, cls) {
+  const el = document.getElementById(id); el.innerHTML = '';
+  if (!list||!list.length) { el.innerHTML='<span class="tag empty">None found</span>'; return; }
+  list.forEach((s,i) => {
+    const t = document.createElement('span');
+    t.className = `tag ${cls}`; t.textContent = s;
+    t.style.animationDelay = i*40+'ms'; el.appendChild(t);
+  });
+}
+
+function reset() {
+  const fi = document.getElementById('resume-input'); fi.value='';
+  document.getElementById('jd').value='';
+  dz.classList.remove('has-file');
+  document.getElementById('upload-title').textContent='Drop your resume here';
+  document.getElementById('upload-hint').textContent='or click to browse · PDF only';
+  document.getElementById('upload-icon').innerHTML=`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00d4ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>`;
+  document.getElementById('result-card').classList.remove('show');
+  document.getElementById('analyze-btn').style.display='flex';
+  clearErr();
+}
+
+async function analyze() {
+  clearErr();
+  const f = document.getElementById('resume-input').files[0];
+  const jd = document.getElementById('jd').value.trim();
+  if (!f) return err('Please upload your resume.');
+  if (!f.name.toLowerCase().endsWith('.pdf')) return err('Only PDF files are supported.');
+  if (!jd) return err('Please paste a job description.');
+  if (jd.length<50) return err('Job description is too short — paste the full text.');
+
+  document.getElementById('analyze-btn').style.display='none';
+  document.getElementById('result-card').classList.remove('show');
+  startLoading();
+
+  try {
+    const fd = new FormData();
+    fd.append('resume', f);
+    fd.append('job_description', jd);
+    const res = await fetch('http://127.0.0.1:8000/analyze', { method:'POST', body:fd });
+    if (!res.ok) { const e=await res.json().catch(()=>{}); throw new Error(e?.detail||'Server error '+res.status); }
+    const data = await res.json();
+    stopLoading();
+    renderScore(data.score_percentage??0);
+    renderTags('matched-tags', data.matched_skills, 'm');
+    renderTags('missing-tags', data.missing_skills, 'x');
+    document.getElementById('match-count').textContent=(data.matched_skills||[]).length;
+    document.getElementById('missing-count').textContent=(data.missing_skills||[]).length;
+    document.getElementById('result-card').classList.add('show');
+  } catch(e) {
+    stopLoading();
+    document.getElementById('analyze-btn').style.display='flex';
+    err(e.message.includes('fetch')?'Cannot reach backend. Make sure FastAPI is running on port 8000.':e.message);
+  }
+}
+</script>
+</body>
+</html>
