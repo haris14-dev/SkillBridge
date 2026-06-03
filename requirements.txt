@@ -9,7 +9,3 @@ pandas
 
 nltk
 pdfminer.six
-
-sentence-transformers
-torch
-transformers
