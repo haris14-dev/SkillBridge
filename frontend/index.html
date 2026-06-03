@@ -693,7 +693,7 @@ async function analyze() {
     const fd = new FormData();
     fd.append('resume', f);
     fd.append('job_description', jd);
-    const res = await fetch('http://127.0.0.1:8000/analyze', { method:'POST', body:fd });
+    const res = await fetch('https://skillbridge-x1k4.onrender.com/', { method:'POST', body:fd });
     if (!res.ok) { const e=await res.json().catch(()=>{}); throw new Error(e?.detail||'Server error '+res.status); }
     const data = await res.json();
     stopLoading();
