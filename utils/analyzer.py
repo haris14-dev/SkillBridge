@@ -28,6 +28,6 @@ def analyze_resume_job(resume_path,job_description):
         "tfidf": tfidf_score,
         "semantic": semantic_score,
         "score_percentage": score_percentage,
-        "matched_skills": matched_skills,
-        "missing_skills": missing_skills,  
+        "matched_skills": list(matched_skills),
+        "missing_skills": list(missing_skills),   
     }
