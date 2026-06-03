@@ -712,7 +712,9 @@ async function analyze() {
   } catch(e) {
     stopLoading();
     document.getElementById('analyze-btn').style.display='flex';
-    err(e.message.includes('fetch')?'Cannot reach backend. Make sure FastAPI is running on port 8000.':e.message);
+   err(e.message.includes('fetch') 
+  ? 'Cannot reach backend — CORS or network error. Check browser console for details.' 
+  : e.message);
   }
 }
 </script>
