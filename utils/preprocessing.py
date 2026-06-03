@@ -4,7 +4,14 @@ from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
 
-stop_words = set(stopwords.words('english'))
+def get_stopwords():
+    try:
+        return set(stopwords.words('english'))
+    except LookupError:
+        nltk.download('stopwords')
+        return set(stopwords.words('english'))
+
+stop_words = get_stopwords()
 lemmatizer = WordNetLemmatizer()
 
 def to_lowercase(text):
